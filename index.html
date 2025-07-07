@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'gh-dark': '#0d1117',
+                        'gh-dark-secondary': '#161b22',
+                        'gh-border': '#30363d',
+                        'gh-text': '#c9d1d9',
+                        'gh-text-secondary': '#8b949e',
+                        'gh-blue': '#58a6ff',
+                        'gh-green': '#238636',
+                        'gh-orange': '#f78166',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        .tab-active {
+            border-bottom: 2px solid #f78166;
+            font-weight: 600;
+            color: white;
+        }
+        .tab-inactive {
+            border-bottom: 2px solid transparent;
+        }
+        .repo-tag {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border: 1px solid #30363d;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #8b949e;
+        }
+        .repo-nav-item.active {
+            border-bottom: 2px solid #f78166;
+            font-weight: 600;
+            color: white;
+        }
+        #main-view, #repo-view {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="font-sans">
+
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gh-dark-secondary py-3 px-4 sm:px-6 lg:px-8 border-b border-gh-border sticky top-0 z-40">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <svg height="32" aria-hidden="true" viewBox="0 0 16 16" version="1.1" width="32" data-view-component="true" class="fill-current text-white cursor-pointer" id="home-button">
+                        <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.19.01-.82.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21-.15.46-.55.38A8.013 8.013 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                    </svg>
+                    <div class="relative">
+                        <input type="text" placeholder="Search or jump to..." class="bg-gh-dark border border-gh-border rounded-md py-1.5 px-3 w-64 focus:outline-none focus:ring-2 focus:ring-gh-blue focus:border-transparent text-sm">
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <nav class="hidden md:flex items-center space-x-4 text-sm font-semibold">
+                        <a href="#" class="text-white">Pull requests</a>
+                        <a href="#" class="text-white">Issues</a>
+                        <a href="#" class="text-white">Marketplace</a>
+                        <a href="#" class="text-white">Explore</a>
+                    </nav>
+                    <div class="relative">
+                        <button id="profile-menu-button" class="flex items-center">
+                            <img id="header-avatar" src="https://placehold.co/32x32/6e7681/c9d1d9?text=U" class="rounded-full w-8 h-8" alt="User Avatar">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Profile View -->
+        <main id="main-view" class="p-4 sm:p-6 lg:p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <!-- Profile Sidebar -->
+                <div class="lg:col-span-1">
+                    <div class="flex flex-col items-center lg:items-start">
+                        <img id="main-avatar" src="https://placehold.co/296x296/6e7681/c9d1d9?text=U" class="rounded-full w-3/4 md:w-1/2 lg:w-full max-w-xs" alt="User Avatar">
+                        <div class="mt-4 text-center lg:text-left">
+                            <h1 id="profile-name" class="text-2xl font-bold text-white"></h1>
+                            <p id="profile-username" class="text-xl text-gh-text-secondary font-light"></p>
+                            <button id="edit-profile-btn" class="mt-4 w-full bg-gh-dark-secondary border border-gh-border rounded-md py-1.5 px-4 text-sm font-semibold hover:border-gh-text-secondary">Edit profile</button>
+                        </div>
+                        <div id="profile-bio" class="mt-4 text-sm"></div>
+                    </div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="lg:col-span-3">
+                    <!-- Navigation Tabs -->
+                    <div class="border-b border-gh-border mb-6">
+                        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                            <a href="#" id="tab-overview" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Overview</a>
+                            <a href="#" id="tab-repositories" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Repositories</a>
+                            <a href="#" id="tab-projects" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Projects</a>
+                        </nav>
+                    </div>
+
+                    <!-- Page Content -->
+                    <div id="content-area">
+                        <div id="repositories-page" class="hidden">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-semibold text-white">Repositories</h2>
+                                <button id="new-repo-btn" class="bg-gh-green text-white font-semibold py-2 px-4 rounded-md text-sm">New</button>
+                            </div>
+                            <div id="repo-list" class="space-y-4"></div>
+                        </div>
+                        <div id="projects-page" class="hidden">
+                             <h2 class="text-xl font-semibold text-white mb-4">Projects</h2>
+                            <div class="bg-gh-dark-secondary border border-gh-border rounded-lg p-8 text-center">
+                                <h3 class="text-lg font-semibold text-white">No projects yet</h3>
+                                <p class="mt-2 text-sm text-gh-text-secondary">Create a new project to organize your work.</p>
+                                <button class="mt-4 bg-gh-green text-white font-semibold py-2 px-4 rounded-md text-sm">New project</button>
+                            </div>
+                        </div>
+                        <div id="overview-page">
+                           <h2 class="text-xl font-semibold text-white mb-4">Popular repositories</h2>
+                           <div id="popular-repos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Repository View -->
+        <div id="repo-view" class="hidden p-4 sm:p-6 lg:p-8">
+            <!-- Repo Header -->
+            <div class="flex flex-wrap items-center justify-between gap-y-4 mb-6">
+                <h1 class="text-2xl font-normal text-gh-text-secondary">
+                    <a href="#" id="repo-owner-link" class="text-gh-blue hover:underline"></a> /
+                    <strong class="font-semibold text-white"><a href="#" id="repo-name-link"></a></strong>
+                    <span id="repo-visibility-badge" class="ml-2 repo-tag"></span>
+                </h1>
+                <div class="flex items-center space-x-2">
+                     <button class="flex items-center bg-gh-dark-secondary border border-gh-border rounded-md py-1 px-3 text-sm font-semibold">Watch <span class="ml-2 bg-gh-border px-1.5 rounded-md text-xs">1</span></button>
+                    <button class="flex items-center bg-gh-dark-secondary border border-gh-border rounded-md py-1 px-3 text-sm font-semibold">Fork <span class="ml-2 bg-gh-border px-1.5 rounded-md" id="repo-fork-count"></span></button>
+                    <button class="flex items-center bg-gh-dark-secondary border border-gh-border rounded-md py-1 px-3 text-sm font-semibold">Star <span class="ml-2 bg-gh-border px-1.5 rounded-md" id="repo-star-count"></span></button>
+                </div>
+            </div>
+            
+            <!-- Repo Navigation -->
+            <div class="border-b border-gh-border">
+                <nav id="repo-nav" class="-mb-px flex space-x-8" aria-label="Repo Tabs">
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Code</a>
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Issues</a>
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Pull requests</a>
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Actions</a>
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Projects</a>
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Wiki</a>
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Security</a>
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Insights</a>
+                    <a href="#" class="repo-nav-item flex items-center py-3 px-1 text-sm">Settings</a>
+                </nav>
+            </div>
+
+            <!-- Repo Content -->
+            <div id="repo-content-area" class="mt-6">
+                <!-- File List Header -->
+                <div class="flex justify-between items-center bg-gh-dark-secondary border border-gh-border rounded-t-md px-4 py-2">
+                    <button class="flex items-center font-semibold text-sm">main</button>
+                    <div class="flex items-center space-x-4">
+                         <button class="text-sm">Go to file</button>
+                         <button class="text-sm">Add file</button>
+                         <button class="bg-gh-green text-white font-semibold py-1.5 px-3 rounded-md text-sm">Code</button>
+                    </div>
+                </div>
+                <!-- File List -->
+                <div id="file-list" class="border border-t-0 border-gh-border rounded-b-md text-sm">
+                    <!-- File items will be injected here -->
+                </div>
+
+                <!-- README Section -->
+                <div id="readme-section" class="mt-6 border border-gh-border rounded-md">
+                    <div class="bg-gh-dark-secondary px-4 py-2 rounded-t-md font-semibold text-sm border-b border-gh-border">README.md</div>
+                    <div id="readme-content" class="p-6"></div>
+                </div>
+            </div>
+             <!-- Placeholder for other repo pages -->
+            <div id="repo-placeholder-content" class="hidden mt-6 text-center text-gh-text-secondary">
+                This content is not yet implemented.
+            </div>
+        </div>
+
+        <!-- Modals (HTML structure is here but collapsed for brevity) -->
+        <div id="new-repo-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">...</div>
+        <div id="edit-profile-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">...</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // State
+            let appData = {
+                profile: {
+                    name: 'The Octocat',
+                    username: 'octocat',
+                    bio: 'Just a cat with a love for coding and open source.',
+                    avatar: 'https://placehold.co/296x296/6e7681/c9d1d9?text=O'
+                },
+                repositories: [
+                    { id: 1, name: 'Spoon-Knife', description: 'This repo is for demonstration purposes only.', visibility: 'Public', language: 'HTML', stars: 11400, forks: 7600, files: ['.gitignore', 'index.html', 'LICENSE'], readme: 'This is a sample README file for the Spoon-Knife repository. It exists to show how a README would be displayed.' },
+                    { id: 2, name: 'hello-world', description: 'My first repository on GitHub!', visibility: 'Public', language: 'JavaScript', stars: 2100, forks: 1200, files: ['app.js', 'index.html', 'style.css'], readme: 'Hello World! This is the README for my first project.' },
+                ],
+                projects: []
+            };
+
+            // DOM Elements
+            const mainView = document.getElementById('main-view');
+            const repoView = document.getElementById('repo-view');
+            const homeButton = document.getElementById('home-button');
+
+            const tabs = { overview: document.getElementById('tab-overview'), repositories: document.getElementById('tab-repositories'), projects: document.getElementById('tab-projects') };
+            const pages = { overview: document.getElementById('overview-page'), repositories: document.getElementById('repositories-page'), projects: document.getElementById('projects-page') };
+            
+            const repoList = document.getElementById('repo-list');
+            const popularRepos = document.getElementById('popular-repos');
+            
+            const repoNav = document.getElementById('repo-nav');
+            const repoContentArea = document.getElementById('repo-content-area');
+            const repoPlaceholderContent = document.getElementById('repo-placeholder-content');
+
+            // --- Local Storage ---
+            function loadData() {
+                const savedData = localStorage.getItem('githubCloneData');
+                if (savedData) {
+                    appData = JSON.parse(savedData);
+                }
+            }
+
+            function saveData() {
+                localStorage.setItem('githubCloneData', JSON.stringify(appData));
+            }
+
+            // --- View Switching ---
+            function showMainView() {
+                repoView.classList.add('hidden');
+                mainView.classList.remove('hidden');
+            }
+
+            function showRepoView(repoId) {
+                const repo = appData.repositories.find(r => r.id === repoId);
+                if (!repo) return;
+
+                // Populate repo view
+                document.getElementById('repo-owner-link').textContent = appData.profile.username;
+                document.getElementById('repo-name-link').textContent = repo.name;
+                document.getElementById('repo-visibility-badge').textContent = repo.visibility;
+                document.getElementById('repo-star-count').textContent = repo.stars.toLocaleString();
+                document.getElementById('repo-fork-count').textContent = repo.forks.toLocaleString();
+
+                const fileListEl = document.getElementById('file-list');
+                fileListEl.innerHTML = '';
+                repo.files.forEach(file => {
+                    fileListEl.innerHTML += `<div class="px-4 py-2 border-b border-gh-border last:border-b-0 hover:bg-gh-dark-secondary cursor-pointer">${file}</div>`;
+                });
+
+                document.getElementById('readme-content').textContent = repo.readme;
+
+                mainView.classList.add('hidden');
+                repoView.classList.remove('hidden');
+                
+                // Set the 'Code' tab as active by default
+                setActiveRepoTab(repoNav.querySelector('.repo-nav-item'));
+                window.scrollTo(0, 0);
+            }
+
+
+            // --- Rendering ---
+            function renderProfile() {
+                const { name, username, bio, avatar } = appData.profile;
+                document.getElementById('profile-name').textContent = name;
+                document.getElementById('profile-username').textContent = `@${username}`;
+                document.getElementById('profile-bio').textContent = bio;
+                document.getElementById('main-avatar').src = avatar || 'https://placehold.co/296x296/6e7681/c9d1d9?text=U';
+                document.getElementById('header-avatar').src = avatar ? avatar.replace('296x296', '32x32') : 'https://placehold.co/32x32/6e7681/c9d1d9?text=U';
+            }
+            
+            function renderRepositories() {
+                repoList.innerHTML = '';
+                popularRepos.innerHTML = '';
+
+                if (appData.repositories.length === 0) {
+                    const emptyHTML = `<div class="bg-gh-dark-secondary border border-gh-border rounded-lg p-8 text-center">...</div>`;
+                    repoList.innerHTML = emptyHTML;
+                    popularRepos.innerHTML = emptyHTML;
+                    return;
+                }
+
+                appData.repositories.forEach(repo => {
+                    const repoCardHTML = `
+                        <div class="border-t border-gh-border py-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <a href="#" data-repo-id="${repo.id}" class="repo-link text-gh-blue text-xl font-semibold hover:underline">${repo.name}</a>
+                                    <span class="ml-2 repo-tag">${repo.visibility}</span>
+                                    <p class="text-gh-text-secondary text-sm mt-1">${repo.description || ''}</p>
+                                </div>
+                                <button class="text-gh-text-secondary hover:text-gh-blue">&#9733; Star</button>
+                            </div>
+                            <div class="flex items-center text-sm text-gh-text-secondary mt-4">
+                                ${repo.language ? `<span class="flex items-center mr-4"><span class="w-3 h-3 rounded-full bg-yellow-400 mr-1.5"></span>${repo.language}</span>` : ''}
+                                <span class="flex items-center mr-4">&#9733; ${repo.stars.toLocaleString()}</span>
+                                <span class="flex items-center mr-4">&#127860; ${repo.forks.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `;
+                    repoList.insertAdjacentHTML('beforeend', repoCardHTML);
+                    
+                    const popularRepoHTML = `
+                     <div class="border border-gh-border rounded-lg p-4 flex flex-col justify-between">
+                        <div>
+                            <a href="#" data-repo-id="${repo.id}" class="repo-link text-gh-blue font-semibold hover:underline">${repo.name}</a>
+                            <p class="text-gh-text-secondary text-xs mt-1 h-8 overflow-hidden">${repo.description || ''}</p>
+                        </div>
+                        <div class="flex items-center text-xs text-gh-text-secondary mt-4">
+                            ${repo.language ? `<span class="flex items-center mr-4"><span class="w-3 h-3 rounded-full bg-yellow-400 mr-1.5"></span>${repo.language}</span>` : ''}
+                            <span class="flex items-center mr-4">&#9733; ${repo.stars.toLocaleString()}</span>
+                        </div>
+                    </div>`;
+                    popularRepos.insertAdjacentHTML('beforeend', popularRepoHTML);
+                });
+
+                document.querySelectorAll('.repo-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const repoId = parseInt(e.currentTarget.dataset.repoId);
+                        showRepoView(repoId);
+                    });
+                });
+            }
+
+            function renderAll() {
+                renderProfile();
+                renderRepositories();
+            }
+
+            // --- Navigation ---
+            function switchTab(targetTab) {
+                Object.keys(tabs).forEach(key => {
+                    const tab = tabs[key];
+                    const page = pages[key];
+                    if (key === targetTab) {
+                        tab.classList.add('tab-active');
+                        tab.classList.remove('tab-inactive', 'text-gh-text-secondary');
+                        page.classList.remove('hidden');
+                    } else {
+                        tab.classList.add('tab-inactive', 'text-gh-text-secondary');
+                        tab.classList.remove('tab-active');
+                        page.classList.add('hidden');
+                    }
+                });
+            }
+
+            function setActiveRepoTab(clickedTab) {
+                // Remove active class from all repo tabs
+                repoNav.querySelectorAll('.repo-nav-item').forEach(item => {
+                    item.classList.remove('active');
+                    item.classList.add('text-gh-text-secondary');
+                });
+                // Add active class to the clicked tab
+                clickedTab.classList.add('active');
+                clickedTab.classList.remove('text-gh-text-secondary');
+
+                // Show/hide content based on tab
+                if (clickedTab.textContent.trim() === 'Code') {
+                    repoContentArea.classList.remove('hidden');
+                    repoPlaceholderContent.classList.add('hidden');
+                } else {
+                    repoContentArea.classList.add('hidden');
+                    repoPlaceholderContent.classList.remove('hidden');
+                    repoPlaceholderContent.textContent = `Content for '${clickedTab.textContent.trim()}' is not yet implemented.`;
+                }
+            }
+            
+            repoNav.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (e.target.classList.contains('repo-nav-item')) {
+                    setActiveRepoTab(e.target);
+                }
+            });
+
+            Object.keys(tabs).forEach(key => {
+                 tabs[key].addEventListener('click', (e) => { e.preventDefault(); switchTab(key); });
+            });
+           
+            homeButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                showMainView();
+                switchTab('overview');
+            });
+            
+            document.getElementById('repo-owner-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                showMainView();
+            });
+
+
+            // --- Modals & Forms (logic is collapsed for brevity) ---
+            // ...
+
+            // --- Initial Load ---
+            loadData();
+            renderAll();
+            switchTab('overview');
+        });
+    </script>
+</body>
+</html>
